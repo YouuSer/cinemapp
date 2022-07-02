@@ -1,0 +1,37 @@
+FROM php:8.1.7-fpm-buster
+
+ARG WWWGROUP
+ARG USER
+ARG DEBIAN_FRONTEND=noninteractive
+ENV WWWGROUP ${WWWGROUP}
+WORKDIR /var/www/html
+
+ENV TZ=UTC+1
+
+#Current timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+#Install package
+RUN apt-get update \
+    && apt-get install -y curl zip unzip git supervisor libpng-dev libzip-dev libxml2-dev\
+    && apt-get update \
+    && apt-get -y autoremove \
+    && apt-get clean
+
+#Install package for php
+RUN docker-php-ext-install pdo pdo_mysql gd zip soap
+
+#Install nodejs and npm
+RUN DEBIAN_FRONTEND='noninteractive' curl -sL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get install nodejs
+
+#Install composer
+RUN curl --silent --show-error https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+#Create user
+RUN groupadd --force -g $WWWGROUP $USER
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1000 $USER
+
+USER $USER
