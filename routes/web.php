@@ -24,6 +24,10 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/hello', function () {
+    echo "Hello";
+});
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
